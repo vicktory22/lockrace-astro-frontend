@@ -1,0 +1,103 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import TeamWithSpread from '../../components/TeamWithSpread.astro';
+import { PicksService } from '../../services/database/picks-service.ts';
+import fromUnixTime from 'date-fns/fromUnixTime';
+import { isAfter } from 'date-fns';
+import { LibsqlError } from '@libsql/client/web';
+
+const { id } = Astro.params;
+const { teamsService, gamesService, weeksService, picksService } = Astro.locals;
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const game_id = formData.get('game_id');
+  const team_id = formData.get('team_id');
+  const spread = formData.get('spread');
+
+  const week_id = await weeksService.getWeekId();
+
+  const timestamp = Date.now();
+
+  const addPickTask = picksService.addPick({
+    week_id,
+    game_id: Number(game_id),
+    team_id: Number(team_id),
+    spread: Number(spread),
+    user_id: Astro.locals.user.id,
+    created_at: timestamp,
+    updated_at: timestamp,
+  });
+
+  const [addPickResult] = await Promise.allSettled([
+    addPickTask,
+  ]);
+
+  if (addPickResult.status === 'rejected') {
+    const reason = addPickResult.reason;
+
+    if (reason instanceof LibsqlError && reason.code === 'SQLITE_CONSTRAINT') {
+      return Astro.redirect('/?duplicate=true');
+    }
+
+    throw new Error('Failed to add pick', { cause: addPickResult.reason });
+  }
+
+  return Astro.redirect('/');
+}
+
+const [fetchGameResult, fetchTeamsResult] = await Promise.allSettled([
+  gamesService.getGame(id),
+  teamsService.getTeams(),
+]);
+
+if (!fetchGameResult || fetchGameResult.status === 'rejected') {
+  throw new Error('Game not found', { cause: fetchGameResult.reason });
+}
+
+const game = fetchGameResult.value.rows.at(0);
+
+//if (isAfter(Date.now(), fromUnixTime(game.game_time))) {
+//  return Astro.redirect('/picks?started=true');
+//}
+
+if (!fetchTeamsResult || fetchTeamsResult?.status === 'rejected') {
+  throw new Error('Failed to fetch teams', { cause: fetchTeamsResult?.reason });
+}
+
+// @ts-ignore
+const teamMap = fetchTeamsResult.value.reduce<Record<string, KVTeam>>((acc, team) => {
+  acc[team.id] = team;
+  return acc;
+}, {});
+
+
+const homeTeam = teamMap[game.home_team_id];
+const awayTeam = teamMap[game.away_team_id];
+---
+
+<AppLayout title="Pick your team">
+  <div class="flex flex-col justify-center h-96 w-full border-opacity-50">
+
+    <TeamWithSpread team={awayTeam} spread={-game.spread} game_id={game.game_id} />
+
+    <div class="divider">OR</div>
+
+    <TeamWithSpread team={homeTeam} spread={game.spread} game_id={game.game_id} />
+
+  </div>
+
+<script is:inline>
+function show(teamId) {
+  const modal = document.getElementById(teamId);
+  // @ts-ignore
+  modal.showModal();
+}
+
+function closeModal(teamId) {
+  const modal = document.getElementById(teamId);
+  // @ts-ignore
+  modal.close();
+}
+</script>
+</AppLayout>

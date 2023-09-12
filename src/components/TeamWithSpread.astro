@@ -1,0 +1,33 @@
+---
+const { team, spread, game_id } = Astro.props;
+---
+
+<div class="card bg-base-200 shadow-xl border rounded-box p-6 mx-2 cursor-pointer static" onclick={`show(${team.id})`}>
+  <div class="flex justify-around items-center">
+    <div class="text-3xl font-bold">{spread}</div>
+    <div class="flex flex-col items-center">
+      <div>{team.displayName}</div>
+      <div class="w-12"><img src={team.logos.at(0)?.href} /></div>
+    </div>
+  </div>
+</div>
+
+<dialog id={team.id} class="modal">
+  <div class="modal-box">
+    <h3 class="text-lg text-center font-bold">CONFIRM SELECTION</span></h3>
+    <div class="divider" />
+    <h3 class="text-lg">Team: <span class="font-bold">{team.displayName}</span></h3>
+    <h3 class="text-lg">Spread: <span class="font-bold">{spread}</span></h3>
+    <div class="divider" />
+    <div class="modal-action">
+      <form method="post" action={`/picks/${game_id}`}>
+        <input type="hidden" name="team_id" value={team.id} />
+        <input type="hidden" name="spread" value={spread} />
+        <input type="hidden" name="game_id" value={game_id} />
+        <button class="btn btn-primary mr-6" type="submit">Confirm</button>
+        <button class="btn" type="button" onclick={`closeModal(${team.id})`}>Cancel</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+

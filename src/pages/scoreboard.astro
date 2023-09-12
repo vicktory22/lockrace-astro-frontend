@@ -1,0 +1,58 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+
+const { teamsService, picksService, user } = Astro.locals;
+
+const getAllPicksTask = picksService.getAllPicks();
+const getTeamsTask = teamsService.getTeams();
+
+const [getAllPicksResult, getTeamsResult] = await Promise.allSettled([
+  getAllPicksTask,
+  getTeamsTask,
+]);
+
+if (getAllPicksResult.status === 'rejected') {
+  throw new Error('Failed to get picks', { cause: getAllPicksResult.reason });
+}
+
+if (getTeamsResult.status === 'rejected') {
+  throw new Error('Failed to fetch teams', { cause: getTeamsResult?.reason });
+}
+
+// @ts-ignore
+const teamMap = getTeamsResult.value.reduce<Record<string, KVTeam>>((acc, team) => {
+  acc[team.id] = team;
+  return acc;
+}, {});
+
+const allPicks = getAllPicksResult.value.rows;
+---
+
+<AppLayout>
+
+  <h1 class="text-2xl font-bold m-2">Scoreboard</h1>
+
+  <div class="overflow-x-auto rounded m-2 shadow">
+  <table class="table static">
+    <!-- head -->
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>W</th>
+        <th>L</th>
+        <th>T</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>Tim Vick</th>
+        <td>4</td>
+        <td>2</td>
+        <td>1</td>
+        <td>4.5</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</AppLayout>

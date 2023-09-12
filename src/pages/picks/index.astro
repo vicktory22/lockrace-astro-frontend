@@ -1,0 +1,90 @@
+---
+import fromUnixTime from 'date-fns/fromUnixTime';
+import { format } from 'date-fns-tz';
+import AppLayout from '../../layouts/AppLayout.astro';
+import GameTime from '../../components/GameTime.astro';
+import Spread from '../../components/Spread.astro';
+import GameDetails from '../../components/GameDetails.astro';
+import type { KVTeam, DBGame } from '../../types';
+
+// @ts-ignore
+const { teamsService, gamesService, weeksService } = Astro.locals;
+
+const weekId = await weeksService.getWeekId();
+
+const gameStartedFlashMessage = Astro.url.searchParams.get('started');
+
+const [fetchGamesResult, fetchTeamsResult] = await Promise.allSettled([
+  gamesService.getGames(weekId),
+  teamsService.getTeams(),
+]);
+
+if (!fetchGamesResult || fetchGamesResult?.status === 'rejected') {
+  throw new Error('Failed to fetch games', { cause: fetchGamesResult?.reason });
+}
+
+if (!fetchTeamsResult || fetchTeamsResult?.status === 'rejected') {
+  throw new Error('Failed to fetch teams', { cause: fetchTeamsResult?.reason });
+}
+
+// @ts-ignore
+const teamMap = fetchTeamsResult.value.reduce<Record<string, KVTeam>>((acc, team) => {
+  acc[team.id] = team;
+  return acc;
+}, {});
+
+const games = fetchGamesResult.value.rows as unknown as DBGame[];
+
+let latestGameTime: string | undefined = undefined;
+
+const title = `Picks - 2023 - Week ${weekId}`;
+---
+
+<AppLayout title={title} >
+
+  { gameStartedFlashMessage !== 'true' ? '' :
+    <div class="m-2 bg-error p-2 rounded-md text-center text-error-content">
+      <span>Game has already started.
+      <br>
+      Please pick another game</span>
+    </div>
+  }
+
+    <div class="w-full grid grid-cols-1 gap-y-2">
+
+
+    {games.map((game) => {
+        const homeTeam = teamMap[game.home_team_id];
+        const awayTeam = teamMap[game.away_team_id];
+
+        let showGameDate = false;
+
+        const gameDate = format(fromUnixTime(game.game_time), 'yyyyMMdd');
+
+        if (latestGameTime !== gameDate) {
+          latestGameTime = gameDate;
+          showGameDate = true; 
+        }
+
+        return (
+            <div class="flex flex-col p-2">
+              { showGameDate ? <div class="mt-8 mb-4 text-md font-bold uppercase">{format(fromUnixTime(game.game_time), 'EEEE, MMMM do')}</div> : '' }
+
+              <div class="card bg-base-200 shadow-xl border cursor-pointer static" onclick={`window.location.href='/picks/${game.game_id}'`}>
+                <div class="card-body px-2 pb-4 pt-2">
+                  <div class="flex flex-col">
+                    <div class="flex flex-nowrap justify-between p-2 pb-4">
+                      <GameTime gameTime={ game.game_time } />
+                      <Spread spread={game.spread} homeTeam={homeTeam.abbreviation} awayTeam={awayTeam.abbreviation} /> 
+                    </div>
+                    <div>
+                      <GameDetails awayTeam={awayTeam} homeTeam={homeTeam} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+   </div> 
+</AppLayout>

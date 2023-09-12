@@ -1,0 +1,70 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+
+const alreadyPickedFlashMessage = Astro.url.searchParams.get('duplicate');
+
+const { teamsService, picksService, user } = Astro.locals;
+
+const getPicksTask = picksService.getPicks(user.id);
+const getTeamsTask = teamsService.getTeams();
+
+const [getPicksResult, getTeamsResult] = await Promise.allSettled([
+  getPicksTask,
+  getTeamsTask,
+]);
+
+if (getPicksResult.status === 'rejected') {
+  throw new Error('Failed to get picks', { cause: getPicksResult.reason });
+}
+
+if (!getTeamsResult || getTeamsResult?.status === 'rejected') {
+  throw new Error('Failed to fetch teams', { cause: getTeamsResult?.reason });
+}
+
+// @ts-ignore
+const teamMap = getTeamsResult.value.reduce<Record<string, KVTeam>>((acc, team) => {
+  acc[team.id] = team;
+  return acc;
+}, {});
+
+const picks = getPicksResult.value.rows;
+---
+
+<AppLayout>
+
+  { alreadyPickedFlashMessage !== 'true' ? '' :
+    <div class="m-2 bg-error p-2 rounded-md text-center text-error-content">
+      <span>You have already picked this week
+      </div>
+  }
+
+  <h1 class="text-2xl font-bold m-2">Your Picks</h1>
+
+  <div class="overflow-x-auto rounded m-2 shadow">
+  <table class="table static">
+    <!-- head -->
+    <thead>
+      <tr>
+        <th>Week #</th>
+        <th>Team</th>
+        <th>Spread</th>
+        <th>Outcome</th>
+      </tr>
+    </thead>
+    <tbody>
+      {picks.map((pick) => {
+        const team = teamMap[pick.team_id];
+        
+        return (
+          <tr>
+            <th>{pick.week_id}</th>
+            <td>{team.displayName}</td>
+            <td>{pick.spread}</td>
+            <td>W</td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</div>
+</AppLayout>

@@ -1,0 +1,21 @@
+---
+import fromUnixTime from 'date-fns/fromUnixTime';
+import { format } from 'date-fns-tz';
+import { isAfter } from 'date-fns';
+
+const { gameTime } = Astro.props;
+
+let time = format(fromUnixTime(gameTime), 'hh:mm a');
+let timeZone = format(fromUnixTime(gameTime), 'z');
+
+if (isAfter(Date.now(), fromUnixTime(gameTime))) {
+  time = 'Game Started';
+  timeZone = '';
+}
+
+---
+
+<div class="text-xs">
+  <span class="font-bold">{ time }</span>
+  <span class="pl-1 self-start">{ timeZone }</span>
+</div>
