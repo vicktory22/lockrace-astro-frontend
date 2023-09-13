@@ -1,5 +1,5 @@
 /// <reference types="astro/client" />
-import type { AdvancedRuntime } from '@astrojs/cloudflare';
+import type { AdvancedRuntime } from "@astrojs/cloudflare";
 
 import type { User } from "@clerk/backend";
 import type { Client } from "@libsql/client";
@@ -10,7 +10,7 @@ declare namespace App {
 	interface Locals extends AdvancedRuntime {
 		user: User;
 		db: Client;
-    environment: string;
+		environment: string;
 		teamsService: TeamsService;
 	}
 }
