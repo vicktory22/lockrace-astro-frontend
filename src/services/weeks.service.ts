@@ -38,7 +38,7 @@ function WeeksService(store: any) {
 		async getWeekId(): Promise<number> {
 			const weeks: KVWeek[] = await store.get("weeks");
 
-      console.log(weeks);
+			console.log(weeks);
 			const week = weeks.find((week) => {
 				return (
 					isBefore(Date.now(), parseISO(week.endDate)) &&

@@ -1,5 +1,5 @@
-import { sqliteTable, integer, text, unique } from "drizzle-orm/sqlite-core"
-import { sql } from "drizzle-orm"
+import { sqliteTable, integer, text, unique } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
 
 export const games = sqliteTable("games", {
 	gameId: integer("game_id").primaryKey().notNull(),
@@ -8,21 +8,27 @@ export const games = sqliteTable("games", {
 	homeTeamScore: integer("home_team_score"),
 	awayTeamId: integer("away_team_id").notNull(),
 	awayTeamScore: integer("away_team_score"),
-	gameTime: integer("game_time").default(sql`(strftime('%s', 'now'))`).notNull(),
+	gameTime: integer("game_time")
+		.default(sql`(strftime('%s', 'now'))`)
+		.notNull(),
 	spread: integer("spread"),
 	createdAt: integer("created_at").default(sql`(strftime('%s', 'now'))`),
 	updatedAt: integer("updated_at").default(sql`(strftime('%s', 'now'))`),
 });
 
-export const picks = sqliteTable("picks", {
-	id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
-	userId: text("user_id").notNull(),
-  week_id: integer("week_id").notNull(),
-	gameId: integer("game_id").notNull(),
-	teamId: integer("team_id").notNull(),
-	spread: integer("spread").notNull(),
-	createdAt: integer("created_at").default(sql`(strftime('%s', 'now'))`),
-	updatedAt: integer("updated_at").default(sql`(strftime('%s', 'now'))`),
-}, (t) => ({
-  unq: unique().on(t.userId, t.week_id),
-}));
+export const picks = sqliteTable(
+	"picks",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+		userId: text("user_id").notNull(),
+		week_id: integer("week_id").notNull(),
+		gameId: integer("game_id").notNull(),
+		teamId: integer("team_id").notNull(),
+		spread: integer("spread").notNull(),
+		createdAt: integer("created_at").default(sql`(strftime('%s', 'now'))`),
+		updatedAt: integer("updated_at").default(sql`(strftime('%s', 'now'))`),
+	},
+	(t) => ({
+		unq: unique().on(t.userId, t.week_id),
+	}),
+);
