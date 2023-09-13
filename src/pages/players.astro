@@ -1,0 +1,35 @@
+---
+import { Clerk } from "@clerk/backend";
+import AppLayout from '../layouts/AppLayout.astro';
+
+const clerk = Clerk({
+  secretKey: import.meta.env.CLERK_SECRET_KEY,
+});
+
+const players = await clerk.users.getUserList();
+
+console.log({ players });
+---
+
+<AppLayout>
+
+  <h1 class="text-2xl font-bold m-2">Players</h1>
+
+  <div class="overflow-x-auto rounded m-2 shadow">
+  <table class="table static">
+    <!-- head -->
+    <thead>
+      <tr>
+        <th>Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      {players.map((player) => (
+        <tr>
+          <td>{`${player.firstName} ${player.lastName}`}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+</AppLayout>
