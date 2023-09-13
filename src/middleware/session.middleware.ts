@@ -29,6 +29,7 @@ export const verifySessionMiddleware = defineMiddleware(
 				secretKey: import.meta.env.CLERK_SECRET_KEY,
 				authorizedParties: [
 					"https://lockrace-astro-frontend.pages.dev",
+					"https://lockrace.com",
 					"http://localhost:4321",
 					"http://localhost:8788",
 					"http://192.168.0.16:8788",
