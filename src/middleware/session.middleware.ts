@@ -40,7 +40,6 @@ export const verifySessionMiddleware = defineMiddleware(
 		]);
 
 		if (result.status === "rejected") {
-			console.log("rejected");
 			return context.redirect("/login", 302);
 		}
 
