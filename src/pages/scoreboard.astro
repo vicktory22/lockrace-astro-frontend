@@ -1,4 +1,5 @@
 ---
+import { Clerk } from "@clerk/backend";
 import AppLayout from '../layouts/AppLayout.astro';
 
 const { teamsService, picksService, user } = Astro.locals;
@@ -26,6 +27,12 @@ const teamMap = getTeamsResult.value.reduce<Record<string, KVTeam>>((acc, team) 
 }, {});
 
 const allPicks = getAllPicksResult.value.rows;
+
+const clerk = Clerk({
+  secretKey: import.meta.env.CLERK_SECRET_KEY,
+});
+
+const players = await clerk.users.getUserList();
 ---
 
 <AppLayout>
@@ -45,13 +52,15 @@ const allPicks = getAllPicksResult.value.rows;
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <th>Tim Vick</th>
-        <td>4</td>
-        <td>2</td>
-        <td>1</td>
-        <td>4.5</td>
-      </tr>
+      {players.map((player) => (
+        <tr>
+          <td>{`${player.firstName} ${player.lastName}`}</td>
+          <td>4</td>
+          <td>2</td>
+          <td>1</td>
+          <td>4.5</td>
+        </tr>
+      ))}
     </tbody>
   </table>
 </div>
