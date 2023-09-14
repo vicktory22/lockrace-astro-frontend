@@ -1,7 +1,10 @@
 ---
 const { spread, homeTeam, awayTeam } = Astro.props;
+
+const team = spread < 0 ? homeTeam : awayTeam;
+const adjustedSpread = spread < 0 ? spread : -spread;
 ---
 
 <div class="text-xs">
-  Spread: <span class="font-bold">{ spread < 0 ? homeTeam: awayTeam} { spread < 0 ? spread : -spread }</span>
+  Spread: <span class="font-bold">{ `${team} ${adjustedSpread}` }</span>
 </div>
