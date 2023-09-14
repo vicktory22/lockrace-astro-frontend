@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { TeamsService } from "../services/database/teams-service";
-import { GamesService } from "../services/database/database-service";
+import { GamesService } from "../services/games.service";
 import { WeeksServiceManager } from "../services/weeks.service";
 import { PicksServiceManager } from "../services/picks.service";
 
