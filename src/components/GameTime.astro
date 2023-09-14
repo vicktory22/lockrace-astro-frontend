@@ -6,7 +6,7 @@ const { gameTime } = Astro.props;
 
 
 let time = format(gameTime, 'hh:mm a');
-let timeZone = format(gameTime, 'z');
+let timeZone = format(gameTime, 'z', { timeZone: 'America/Los_Angeles' });
 
 if (isAfter(new Date(), gameTime)) {
   time = 'Game Started';
