@@ -1,11 +1,10 @@
 ---
-import fromUnixTime from 'date-fns/fromUnixTime';
 import { format } from 'date-fns-tz';
 import AppLayout from '../../layouts/AppLayout.astro';
 import GameTime from '../../components/GameTime.astro';
 import Spread from '../../components/Spread.astro';
 import GameDetails from '../../components/GameDetails.astro';
-import type { KVTeam, DBGame } from '../../types';
+import type { DBGame, KVTeam } from '../../types';
 
 // @ts-ignore
 const { teamsService, gamesService, weeksService } = Astro.locals;
@@ -33,9 +32,9 @@ const teamMap = fetchTeamsResult.value.reduce<Record<string, KVTeam>>((acc, team
   return acc;
 }, {});
 
-const games = fetchGamesResult.value.rows as unknown as DBGame[];
+const games = fetchGamesResult.value as DBGame[];
 
-let latestGameTime: string | undefined = undefined;
+let latestGameTime = new Date();
 
 const title = `Picks - 2023 - Week ${weekId}`;
 ---
@@ -59,16 +58,14 @@ const title = `Picks - 2023 - Week ${weekId}`;
 
         let showGameDate = false;
 
-        const gameDate = format(fromUnixTime(game.game_time), 'yyyyMMdd');
-
-        if (latestGameTime !== gameDate) {
-          latestGameTime = gameDate;
+        if (format(latestGameTime, 'yyyyMMdd') !== format(game.game_time, 'yyyyMMdd')) {
+          latestGameTime = game.game_time;
           showGameDate = true; 
         }
 
         return (
             <div class="flex flex-col p-2">
-              { showGameDate ? <div class="mt-8 mb-4 text-md font-bold uppercase">{format(fromUnixTime(game.game_time), 'EEEE, MMMM do')}</div> : '' }
+              { showGameDate ? <div class="mt-8 mb-4 text-md font-bold uppercase">{format(game.game_time, 'EEEE, MMMM do')}</div> : '' }
 
               <div class="card bg-base-200 shadow-xl border cursor-pointer static" onclick={`window.location.href='/picks/${game.game_id}'`}>
                 <div class="card-body px-2 pb-4 pt-2">

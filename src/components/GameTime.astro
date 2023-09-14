@@ -1,16 +1,14 @@
 ---
-import fromUnixTime from 'date-fns/fromUnixTime';
-import { format, utcToZonedTime } from 'date-fns-tz';
 import { isAfter } from 'date-fns';
+import { format } from 'date-fns-tz';
 
 const { gameTime } = Astro.props;
 
-const unixToLosAngeles = (timestamp: number) => utcToZonedTime(fromUnixTime(timestamp), 'America/Los_Angeles');
 
-let time = format(unixToLosAngeles(gameTime), 'hh:mm a');
-let timeZone = format(unixToLosAngeles(gameTime), 'z');
+let time = format(gameTime, 'hh:mm a');
+let timeZone = format(gameTime, 'z');
 
-if (isAfter(Date.now(), fromUnixTime(gameTime))) {
+if (isAfter(new Date(), gameTime)) {
   time = 'Game Started';
   timeZone = '';
 }
