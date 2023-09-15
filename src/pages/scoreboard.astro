@@ -2,7 +2,7 @@
 import { Clerk } from "@clerk/backend";
 import AppLayout from '../layouts/AppLayout.astro';
 
-const { teamsService, picksService, user } = Astro.locals;
+const { teamsService, picksService } = Astro.locals;
 
 const getAllPicksTask = picksService.getAllPicks();
 const getTeamsTask = teamsService.getTeams();
@@ -26,7 +26,7 @@ const teamMap = getTeamsResult.value.reduce<Record<string, KVTeam>>((acc, team) 
   return acc;
 }, {});
 
-const allPicks = getAllPicksResult.value.rows;
+const allPicks = getAllPicksResult.value;
 
 const clerk = Clerk({
   secretKey: import.meta.env.CLERK_SECRET_KEY,

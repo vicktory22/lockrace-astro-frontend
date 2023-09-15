@@ -21,7 +21,7 @@ export const picks = sqliteTable(
 	{
 		id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
 		userId: text("user_id").notNull(),
-		week_id: integer("week_id").notNull(),
+		weekId: integer("week_id").notNull(),
 		gameId: integer("game_id").notNull(),
 		teamId: integer("team_id").notNull(),
 		spread: integer("spread").notNull(),
@@ -29,6 +29,6 @@ export const picks = sqliteTable(
 		updatedAt: integer("updated_at").default(sql`(strftime('%s', 'now'))`),
 	},
 	(t) => ({
-		unq: unique().on(t.userId, t.week_id),
+		unq: unique().on(t.userId, t.weekId),
 	}),
 );

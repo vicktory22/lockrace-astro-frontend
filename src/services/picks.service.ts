@@ -1,5 +1,8 @@
 import { createClient } from "@libsql/client/web";
 import { getConfig } from "../services/database/database-config";
+import { drizzle } from "drizzle-orm/libsql";
+import { picks } from "../schema";
+import { eq } from "drizzle-orm";
 
 type AddPicksParams = {
 	user_id: string;
@@ -18,41 +21,29 @@ export function PicksServiceManager(_environment: string) {
 export function PicksService() {
 	const client = createClient(getConfig());
 
+  const db = drizzle(client);
+
 	return {
 		getPicks(userId: string) {
-			return client.execute({
-				sql: "SELECT * FROM picks WHERE user_id = ?",
-				args: [userId],
-			});
+      return db.select().from(picks).where(eq(picks.userId, userId)).all();
 		},
 
 		getAllPicks() {
-			return client.execute("SELECT * FROM picks");
+      return db.select().from(picks).all();
 		},
 
 		addPick(params: AddPicksParams) {
-			const {
-				user_id,
-				game_id,
-				team_id,
-				week_id,
-				spread,
-				updated_at,
-				created_at,
-			} = params;
+      const newPick: typeof picks.$inferInsert = {
+        userId: params.user_id,
+        gameId: params.game_id,
+        teamId: params.team_id,
+        weekId: params.week_id,
+        spread: params.spread,
+        updatedAt: params.updated_at,
+        createdAt: params.created_at,
+      };
 
-			return client.execute({
-				sql: "INSERT INTO picks (user_id, game_id, team_id, week_id, spread, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-				args: [
-					user_id,
-					game_id,
-					team_id,
-					week_id,
-					spread,
-					updated_at,
-					created_at,
-				],
-			});
+      return db.insert(picks).values(newPick).execute();
 		},
 	};
 }
