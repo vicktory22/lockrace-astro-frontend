@@ -5,14 +5,34 @@ import GameTime from '../../components/GameTime.astro';
 import Spread from '../../components/Spread.astro';
 import GameDetails from '../../components/GameDetails.astro';
 import type { DBGame, KVTeam } from '../../types';
+import { PicksService } from '../../services/picks.service';
 import { isAfter } from 'date-fns';
 
 // @ts-ignore
-const { teamsService, gamesService, weeksService } = Astro.locals;
+const picksService: ReturnType<typeof PicksService> = Astro.locals.picksService;
+
+// @ts-ignore
+const { teamsService, gamesService, weeksService, user } = Astro.locals;
+
+const gameStartedFlashMessage = Astro.url.searchParams.get('started');
 
 const weekId = await weeksService.getWeekId();
 
-const gameStartedFlashMessage = Astro.url.searchParams.get('started');
+const [fetchPickResult] = await Promise.allSettled([
+  picksService.getPickByWeekId(user.user_id, weekId),
+]);
+
+if (!fetchPickResult || fetchPickResult?.status === 'rejected') {
+  throw new Error('Failed to fetch picks', { cause: fetchPickResult?.reason });
+}
+
+const pick = fetchPickResult.value;
+
+let alreadyPickedFlashMessage = false;
+
+if (pick.length) {
+  alreadyPickedFlashMessage = true;
+}
 
 const [fetchGamesResult, fetchTeamsResult] = await Promise.allSettled([
   gamesService.getGames(weekId),
@@ -42,11 +62,19 @@ const title = `Picks - 2023 - Week ${weekId}`;
 
 <AppLayout title={title} >
 
-  { gameStartedFlashMessage !== 'true' ? '' :
+  { 
+    gameStartedFlashMessage !== 'true' ? '' :
     <div class="m-2 bg-error p-2 rounded-md text-center text-error-content">
       <span>Game has already started.
       <br>
       Please pick another game</span>
+    </div>
+  }
+  
+  {
+    !alreadyPickedFlashMessage ? '' :
+    <div class="m-2 bg-warning p-4 rounded-md text-center text-warning-content">
+      <span>You have already made a pick this week.</span>
     </div>
   }
 
@@ -66,11 +94,13 @@ const title = `Picks - 2023 - Week ${weekId}`;
           showGameDate = true; 
         }
 
+        const shouldDisable = gameStarted || alreadyPickedFlashMessage;
+
         return (
             <div class="flex flex-col p-2">
               { showGameDate ? <div class="mt-8 mb-4 text-md font-bold uppercase">{format(game.game_time, 'EEEE, MMMM do')}</div> : '' }
 
-              <div class:list={[{'cursor-pointer': !gameStarted }, 'card', 'bg-base-200', 'shadow-xl', 'border', 'static']} onclick={ gameStarted ? null : `window.location.href='/picks/${game.game_id}'`}>
+              <div class:list={[{'cursor-pointer': !shouldDisable }, 'card', 'bg-base-200', 'shadow-xl', 'border', 'static']} onclick={ shouldDisable ? null : `window.location.href='/picks/${game.game_id}'`}>
                 <div class="card-body px-2 pb-4 pt-2">
                   <div class="flex flex-col">
                     <div class="flex flex-nowrap justify-between p-2 pb-4">
