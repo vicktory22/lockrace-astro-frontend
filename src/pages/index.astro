@@ -1,9 +1,12 @@
 ---
 import AppLayout from '../layouts/AppLayout.astro';
+import { PicksService } from '../services/picks.service';
 
 const alreadyPickedFlashMessage = Astro.url.searchParams.get('duplicate');
 
-const { teamsService, picksService, user } = Astro.locals;
+const picksService: ReturnType<typeof PicksService> = Astro.locals.picksService;
+
+const { teamsService, user } = Astro.locals;
 
 const getPicksTask = picksService.getPicks(user.id);
 const getTeamsTask = teamsService.getTeams();
@@ -27,7 +30,7 @@ const teamMap = getTeamsResult.value.reduce<Record<string, KVTeam>>((acc, team) 
   return acc;
 }, {});
 
-const picks = getPicksResult.value.rows;
+const picks = getPicksResult.value;
 ---
 
 <AppLayout>
@@ -53,11 +56,12 @@ const picks = getPicksResult.value.rows;
     </thead>
     <tbody>
       {picks.map((pick) => {
-        const team = teamMap[pick.team_id];
+        const team = teamMap[pick.teamId];
         
         return (
           <tr>
             <th>{pick.week_id}</th>
+            <th>{pick.weekId}</th>
             <td>{team.displayName}</td>
             <td>{pick.spread}</td>
             <td>W</td>
