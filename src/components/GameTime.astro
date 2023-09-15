@@ -1,20 +1,21 @@
 ---
-import { isAfter } from 'date-fns';
+import { isBefore } from 'date-fns';
 import { format } from 'date-fns-tz';
 
 const { gameTime } = Astro.props;
 
 
-let time = format(gameTime, 'hh:mm a');
-let timeZone = format(gameTime, 'z', { timeZone: 'America/Los_Angeles' });
+const time = format(gameTime, 'hh:mm a');
+const timeZone = format(gameTime, 'z', { timeZone: 'America/Los_Angeles' });
 
-if (isAfter(new Date(), gameTime)) {
-  time = 'Game Started';
-  timeZone = '';
-}
+const hasStarted = isBefore(new Date(), gameTime);
 ---
 
 <div class="text-xs">
-  <span class="font-bold">{ time }</span>
-  <span class="pl-1 self-start">{ timeZone }</span>
+  { hasStarted ? 
+    <span class="font-bold">{ time  }</span>
+    <span class="pl-1 self-start">{ timeZone }</span>
+    :
+    <span class="font-bold text-error">Game started</span>
+  }
 </div>
