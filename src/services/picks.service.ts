@@ -24,6 +24,10 @@ export function PicksService() {
   const db = drizzle(client);
 
 	return {
+    getPickByWeekId(userId: string, weekId: number) {
+      return db.select().from(picks).where(eq(picks.userId, userId)).where(eq(picks.weekId, weekId)).all();
+    },
+
 		getPicks(userId: string) {
       return db.select().from(picks).where(eq(picks.userId, userId)).all();
 		},
