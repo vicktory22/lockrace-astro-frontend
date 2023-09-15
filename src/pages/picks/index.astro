@@ -5,6 +5,7 @@ import GameTime from '../../components/GameTime.astro';
 import Spread from '../../components/Spread.astro';
 import GameDetails from '../../components/GameDetails.astro';
 import type { DBGame, KVTeam } from '../../types';
+import { isAfter } from 'date-fns';
 
 // @ts-ignore
 const { teamsService, gamesService, weeksService } = Astro.locals;
@@ -58,6 +59,8 @@ const title = `Picks - 2023 - Week ${weekId}`;
 
         let showGameDate = false;
 
+        const gameStarted = isAfter(new Date(), game.game_time);
+
         if (format(latestGameTime, 'yyyyMMdd') !== format(game.game_time, 'yyyyMMdd')) {
           latestGameTime = game.game_time;
           showGameDate = true; 
@@ -67,12 +70,16 @@ const title = `Picks - 2023 - Week ${weekId}`;
             <div class="flex flex-col p-2">
               { showGameDate ? <div class="mt-8 mb-4 text-md font-bold uppercase">{format(game.game_time, 'EEEE, MMMM do')}</div> : '' }
 
-              <div class="card bg-base-200 shadow-xl border cursor-pointer static" onclick={`window.location.href='/picks/${game.game_id}'`}>
+              <div class:list={[{'cursor-pointer': !gameStarted }, 'card', 'bg-base-200', 'shadow-xl', 'border', 'static']} onclick={ gameStarted ? null : `window.location.href='/picks/${game.game_id}'`}>
                 <div class="card-body px-2 pb-4 pt-2">
                   <div class="flex flex-col">
                     <div class="flex flex-nowrap justify-between p-2 pb-4">
                       <GameTime gameTime={ game.game_time } />
-                      <Spread spread={game.spread} homeTeam={homeTeam.abbreviation} awayTeam={awayTeam.abbreviation} /> 
+
+                      { isAfter(new Date(), game.game_time) ? '' : 
+                        <Spread spread={game.spread} homeTeam={homeTeam.abbreviation} awayTeam={awayTeam.abbreviation} gameTime={ game.game_id } /> 
+                      }
+
                     </div>
                     <div>
                       <GameDetails awayTeam={awayTeam} homeTeam={homeTeam} />
