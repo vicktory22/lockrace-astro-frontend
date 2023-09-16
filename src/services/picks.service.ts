@@ -21,33 +21,38 @@ export function PicksServiceManager(_environment: string) {
 export function PicksService() {
 	const client = createClient(getConfig());
 
-  const db = drizzle(client);
+	const db = drizzle(client);
 
 	return {
-    getPickByWeekId(userId: string, weekId: number) {
-      return db.select().from(picks).where(eq(picks.userId, userId)).where(eq(picks.weekId, weekId)).all();
-    },
+		getPickByWeekId(userId: string, weekId: number) {
+			return db
+				.select()
+				.from(picks)
+				.where(eq(picks.userId, userId))
+				.where(eq(picks.weekId, weekId))
+				.all();
+		},
 
 		getPicks(userId: string) {
-      return db.select().from(picks).where(eq(picks.userId, userId)).all();
+			return db.select().from(picks).where(eq(picks.userId, userId)).all();
 		},
 
 		getAllPicks() {
-      return db.select().from(picks).all();
+			return db.select().from(picks).all();
 		},
 
 		addPick(params: AddPicksParams) {
-      const newPick: typeof picks.$inferInsert = {
-        userId: params.user_id,
-        gameId: params.game_id,
-        teamId: params.team_id,
-        weekId: params.week_id,
-        spread: params.spread,
-        updatedAt: params.updated_at,
-        createdAt: params.created_at,
-      };
+			const newPick: typeof picks.$inferInsert = {
+				userId: params.user_id,
+				gameId: params.game_id,
+				teamId: params.team_id,
+				weekId: params.week_id,
+				spread: params.spread,
+				updatedAt: params.updated_at,
+				createdAt: params.created_at,
+			};
 
-      return db.insert(picks).values(newPick).execute();
+			return db.insert(picks).values(newPick).execute();
 		},
 	};
 }
